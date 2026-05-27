@@ -258,7 +258,7 @@ def cmd_x(args: argparse.Namespace) -> int:
     # Build prompts
     timezone = _detect_timezone()
     system_prompt = build_system_prompt(timezone)
-    user_message = build_user_message(args.center_time, args.additional)
+    user_message = build_user_message(args.center_time, args.additional, timezone)
 
     if args.verbose:
         print("--- system prompt ---", file=sys.stderr)

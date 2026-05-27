@@ -119,7 +119,7 @@ def test_system_prompt_includes_timezone_and_today():
 
 
 def test_user_message_numbers_prompts_and_marks_anchor():
-    msg = build_user_message("anchor here", ["second", "third"])
+    msg = build_user_message("anchor here", ["second", "third"], "America/New_York")
     assert "1. ANCHOR" in msg
     assert "anchor here" in msg
     assert "2. ADDITIONAL: second" in msg
@@ -127,6 +127,25 @@ def test_user_message_numbers_prompts_and_marks_anchor():
 
 
 def test_user_message_handles_only_anchor():
-    msg = build_user_message("just one", [])
+    msg = build_user_message("just one", [], "America/New_York")
     assert "1. ANCHOR" in msg
     assert "2." not in msg
+
+
+def test_user_message_appends_local_timezone_when_missing():
+    msg = build_user_message(
+        "lunch at noon", ["follow-up next Monday"], "America/Los_Angeles"
+    )
+    # Both descriptions lack any timezone mention -> annotated with the local tz.
+    assert "lunch at noon (timezone: America/Los_Angeles)" in msg
+    assert "follow-up next Monday (timezone: America/Los_Angeles)" in msg
+
+
+def test_user_message_skips_annotation_when_timezone_already_mentioned():
+    msg = build_user_message(
+        "call at 3pm PT", ["sync at 9am Europe/London"], "America/New_York"
+    )
+    # Neither should get the local-tz annotation appended.
+    assert "(timezone: America/New_York)" not in msg
+    assert "call at 3pm PT" in msg
+    assert "sync at 9am Europe/London" in msg

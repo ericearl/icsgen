@@ -7,8 +7,40 @@ The output schema is what `ics_builder.py` consumes.
 
 from __future__ import annotations
 
+import re
 from datetime import datetime
 from zoneinfo import ZoneInfo
+
+
+_TZ_IANA_PATTERN = re.compile(r"\b[A-Z][A-Za-z_]+/[A-Z][A-Za-z_]+\b")
+_TZ_ABBR_PATTERN = re.compile(r"\b[A-Z]{2,5}\b")
+_TZ_ABBREVIATIONS = frozenset({
+    "UTC", "GMT",
+    "EST", "EDT", "ET",
+    "CST", "CDT", "CT",
+    "MST", "MDT", "MT",
+    "PST", "PDT", "PT",
+    "AKST", "AKDT",
+    "HST", "HDT",
+    "AST", "ADT",
+    "BST", "CET", "CEST", "EET", "EEST", "WET", "WEST",
+    "IST", "JST", "KST", "SGT", "HKT",
+    "AEST", "AEDT", "ACST", "ACDT", "AWST",
+    "NZST", "NZDT",
+    "MSK", "TRT",
+})
+
+
+def _mentions_timezone(text: str) -> bool:
+    if _TZ_IANA_PATTERN.search(text):
+        return True
+    return any(tok in _TZ_ABBREVIATIONS for tok in _TZ_ABBR_PATTERN.findall(text))
+
+
+def _annotate_timezone(text: str, timezone: str) -> str:
+    if _mentions_timezone(text):
+        return text
+    return f"{text} (timezone: {timezone})"
 
 
 SYSTEM_PROMPT_TEMPLATE = """\
@@ -107,7 +139,11 @@ present; if no location is given, use the literal string \
 contains explicit description content, use it; otherwise set `description` to \
 the exact raw input text for that event (the natural-language phrase the user \
 provided for it, without any "ANCHOR:" / "ADDITIONAL:" / numbering prefixes).
-7. References like "the center time" / "the anchor" / "it" / "that meeting" \
+7. `timezone` is always required. If the description does not explicitly name \
+a timezone (e.g. "in PT", "Europe/London", "EST"), default to the user's local \
+timezone shown in "Current context" above. Only override this default when an \
+explicit timezone is named in that specific event's description.
+8. References like "the center time" / "the anchor" / "it" / "that meeting" \
 ALWAYS refer to the first (anchor) event's `start` datetime. Compute relative \
 offsets from that anchor's `start`.
 
@@ -171,9 +207,18 @@ def build_system_prompt(timezone: str) -> str:
     )
 
 
-def build_user_message(center_time: str, additional: list[str]) -> str:
-    """Format the list of event descriptions as a numbered list for the LLM."""
+def build_user_message(
+    center_time: str, additional: list[str], timezone: str
+) -> str:
+    """Format the list of event descriptions as a numbered list for the LLM.
+
+    Each description that does not already name a timezone (IANA name like
+    "America/New_York" or a common abbreviation like "EST"/"PT"/"UTC") is
+    annotated with the user's local timezone so the LLM resolves it
+    unambiguously.
+    """
+    center_time = _annotate_timezone(center_time, timezone)
     lines = [f"  1. ANCHOR (center time): {center_time}"]
     for i, prompt in enumerate(additional, start=2):
-        lines.append(f"  {i}. ADDITIONAL: {prompt}")
+        lines.append(f"  {i}. ADDITIONAL: {_annotate_timezone(prompt, timezone)}")
     return "Please convert these event descriptions to JSON:\n\n" + "\n".join(lines)

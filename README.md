@@ -71,7 +71,7 @@ icsgen x "Lunch with Sarah next Friday" -o lunch.ics
 ## Development
 
 ```bash
-git clone https://github.com/your-org/icsgen
+git clone https://github.com/ericearl/icsgen
 cd icsgen
 uv sync --all-extras
 uv run pytest

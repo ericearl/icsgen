@@ -1,6 +1,6 @@
 # icsgen
 
-Generate `.ics` calendar files from natural-language prompts, powered by your choice of LLM (Claude, ChatGPT, or Gemini).
+Generate `.ics` calendar files from natural-language prompts, powered by your choice of LLM (Claude, ChatGPT, Gemini, or any model on OpenRouter — including its free tier).
 
 You hand it a description of an appointment — anything from `"Presentation on Tuesday June 2nd at 12pm for an hour in Conference Room A"` to `"reminder all day 2 weeks before the center time"` — and `icsgen` asks an LLM to resolve it into structured event data, then writes a valid `.ics` file you can import into any calendar app.
 
@@ -20,7 +20,7 @@ Run `icsgen login` once per provider you want to use. It prompts for the provide
 
 ```bash
 $ icsgen login
-Provider [claude / openai / gemini]: claude
+Provider [claude / openai / gemini / openrouter]: claude
 API endpoint [https://api.anthropic.com/v1/messages]:
 API key: ********
 Model [claude-sonnet-4-6]:
@@ -28,7 +28,9 @@ Set as active provider? [Y/n]: y
 Saved. Active provider: claude
 ```
 
-All three providers can be configured simultaneously; switch which is active by re-running `icsgen login` for a different provider and answering `y`, or override per-invocation with `--provider`.
+All providers can be configured simultaneously; switch which is active by re-running `icsgen login` for a different provider and answering `y`, or override per-invocation with `--provider`.
+
+For **OpenRouter**, the default model is a free-tier one (`openai/gpt-oss-120b:free`). Any model ID listed at [openrouter.ai/models](https://openrouter.ai/models) — paid or free (the `:free` suffix marks the free tier) — can be supplied at login or via `-m / --model`.
 
 Config lives at `~/.config/icsgen/config.toml` with `0600` permissions.
 
@@ -54,7 +56,7 @@ icsgen x "Lunch with Sarah next Friday" -o lunch.ics
 | --- | --- |
 | `-a / --add / --additional` | One or more additional event prompts (each quoted). |
 | `-o / --output PATH` | Output file path. Default: `icsgen-output.ics`. |
-| `-p / --provider {claude,openai,gemini}` | Override the active provider for this call. |
+| `-p / --provider {claude,openai,gemini,openrouter}` | Override the active provider for this call. |
 | `-m / --model MODEL` | Override the model string for the chosen provider. |
 | `--dry-run` | Print the parsed event JSON to stdout; do not write a file. |
 | `--save-json PATH` | Also write the raw LLM-returned JSON to this path. |

@@ -19,6 +19,11 @@ Layout of `~/.config/icsgen/config.toml`:
     api_key = "..."
     model = "gemini-2.0-flash"
 
+    [providers.openrouter]
+    endpoint = "https://openrouter.ai/api/v1/chat/completions"
+    api_key = "sk-or-..."
+    model = "openai/gpt-oss-120b:free"
+
 The file is created with mode 0600. All reads and writes go through the
 functions in this module.
 """
@@ -35,8 +40,8 @@ from typing import Literal
 import tomli_w
 
 
-Provider = Literal["claude", "openai", "gemini"]
-PROVIDERS: tuple[Provider, ...] = ("claude", "openai", "gemini")
+Provider = Literal["claude", "openai", "gemini", "openrouter"]
+PROVIDERS: tuple[Provider, ...] = ("claude", "openai", "gemini", "openrouter")
 
 
 PROVIDER_DEFAULTS: dict[Provider, dict[str, str]] = {
@@ -52,6 +57,14 @@ PROVIDER_DEFAULTS: dict[Provider, dict[str, str]] = {
         # Gemini's endpoint includes the model in the URL; we build it dynamically.
         "endpoint": "https://generativelanguage.googleapis.com/v1beta/models",
         "model": "gemini-2.0-flash",
+    },
+    "openrouter": {
+        # OpenRouter routes to many models via an OpenAI-compatible API. The
+        # default points at a free-tier model; any `:free` model ID from
+        # https://openrouter.ai/models works, and the user can pick another
+        # at `icsgen login` time or via `--model`.
+        "endpoint": "https://openrouter.ai/api/v1/chat/completions",
+        "model": "openai/gpt-oss-120b:free",
     },
 }
 

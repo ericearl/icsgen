@@ -69,8 +69,8 @@ preamble. No trailing text. Exact schema:
       "all_day":     true | false,
       "start":       "ISO 8601 string — see rules below",
       "end":         "ISO 8601 string — see rules below",
-      "location":    "string | null",
-      "description": "string | null",
+      "location":    "string — required, never null",
+      "description": "string — required, never null",
       "timezone":    "IANA timezone string, e.g. America/New_York"
     }}
   ]
@@ -81,7 +81,9 @@ preamble. No trailing text. Exact schema:
 1. The `events` array MUST contain exactly one entry per input description, in \
 the order received (anchor first, then additional events in the order given).
 2. `summary` is always required. Extract from explicit cues ("call it X", \
-"titled X") when present, otherwise infer a concise title from the description.
+"titled X") when present, otherwise infer a concise title from the \
+description. If no title can be extracted or reasonably inferred, use the \
+literal string "Untitled".
 3. For TIMED events:
    - `all_day` is false.
    - `start` and `end` are full datetimes WITHOUT timezone offset: \
@@ -90,14 +92,22 @@ the order received (anchor first, then additional events in the order given).
    - If no end / duration is given, default to a 1-hour duration.
    - If a date is given but no time, default to 12:00 (noon) start and 1-hour \
 duration — UNLESS the description says "all day", in which case use all_day.
+   - If a time is given but no date, assume today's date (in the user's local \
+timezone shown in "Current context" above) for both `start` and `end`.
 4. For ALL-DAY events:
    - `all_day` is true.
    - `start` is a date-only string "YYYY-MM-DD" for the day of the event.
    - `end` is the date-only string for the day AFTER `start` (per RFC 5545 \
 all-day single-day convention).
    - `timezone` is still required; use the user's local timezone.
-5. `location` and `description` are null when not given. Do not invent them.
-6. References like "the center time" / "the anchor" / "it" / "that meeting" \
+5. `location` is always required and must never be null. Extract it when \
+present; if no location is given, use the literal string \
+"(no location provided)". Do not invent a real location.
+6. `description` is always required and must never be null. If the input \
+contains explicit description content, use it; otherwise set `description` to \
+the exact raw input text for that event (the natural-language phrase the user \
+provided for it, without any "ANCHOR:" / "ADDITIONAL:" / numbering prefixes).
+7. References like "the center time" / "the anchor" / "it" / "that meeting" \
 ALWAYS refer to the first (anchor) event's `start` datetime. Compute relative \
 offsets from that anchor's `start`.
 
@@ -116,8 +126,8 @@ Output (assuming user timezone America/New_York):
       "all_day": false,
       "start": "2026-06-02T12:00:00",
       "end": "2026-06-02T13:00:00",
-      "location": null,
-      "description": null,
+      "location": "(no location provided)",
+      "description": "Presentation for Tuesday June 2nd 2026 at 12pm for an hour",
       "timezone": "America/New_York"
     }},
     {{
@@ -125,8 +135,8 @@ Output (assuming user timezone America/New_York):
       "all_day": true,
       "start": "2026-05-19",
       "end": "2026-05-20",
-      "location": null,
-      "description": null,
+      "location": "(no location provided)",
+      "description": "All-day reminder titled \\"Prep for presentation\\" 2 weeks before the center time",
       "timezone": "America/New_York"
     }},
     {{
@@ -135,7 +145,7 @@ Output (assuming user timezone America/New_York):
       "start": "2026-06-01T16:00:00",
       "end": "2026-06-01T16:30:00",
       "location": "my office",
-      "description": null,
+      "description": "30-min dry run the day before at 4pm in my office",
       "timezone": "America/New_York"
     }}
   ]

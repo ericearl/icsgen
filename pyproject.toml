@@ -5,14 +5,14 @@ build-backend = "hatchling.build"
 [project]
 name = "icsgen"
 version = "0.1.0"
-description = "Generate ICS calendar files from natural-language prompts using Claude, ChatGPT, or Gemini."
+description = "Generate ICS calendar files from natural-language prompts using Claude, ChatGPT, Gemini, or OpenRouter."
 readme = "README.md"
 requires-python = ">=3.11"
 authors = [
     { name = "Eric Earl" },
     { name = "Claude Opus 4.7" },
 ]
-keywords = ["ics", "calendar", "llm", "claude", "openai", "chatgpt", "gemini", "cli"]
+keywords = ["ics", "calendar", "llm", "claude", "openai", "chatgpt", "gemini", "openrouter", "cli"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Environment :: Console",

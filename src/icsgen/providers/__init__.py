@@ -12,12 +12,14 @@ from icsgen.providers.base import BaseProvider
 from icsgen.providers.claude import ClaudeProvider
 from icsgen.providers.gemini import GeminiProvider
 from icsgen.providers.openai import OpenAIProvider
+from icsgen.providers.openrouter import OpenRouterProvider
 
 
 _REGISTRY: dict[str, type[BaseProvider]] = {
     "claude": ClaudeProvider,
     "openai": OpenAIProvider,
     "gemini": GeminiProvider,
+    "openrouter": OpenRouterProvider,
 }
 
 
@@ -34,5 +36,6 @@ __all__ = [
     "ClaudeProvider",
     "GeminiProvider",
     "OpenAIProvider",
+    "OpenRouterProvider",
     "get_provider_client",
 ]

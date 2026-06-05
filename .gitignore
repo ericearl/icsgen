@@ -1,6 +1,6 @@
 # specifics
 uv.lock
-icsgen-output.ics
+*.ics
 
 # Byte-compiled / optimized
 __pycache__/

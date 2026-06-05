@@ -57,6 +57,11 @@ include = [
     "pyproject.toml",
 ]
 
+[tool.uv]
+# This repo lives in a OneDrive-synced folder, which doesn't support hardlinks.
+# Force copy mode so `uv sync` doesn't fail with os error 396 / locked files.
+link-mode = "copy"
+
 [tool.ruff]
 line-length = 100
 target-version = "py311"
